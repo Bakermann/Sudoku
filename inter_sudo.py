@@ -1,15 +1,12 @@
 # import pygame library
 import pygame
-from sudoku import sudoku
-from sudoku import verif
-from sudoku import solution
-from sudoku import dispo
+from sudoku import Sudoku
 
 # initialise the pygame font
 pygame.font.init()
 
 # Total window
-screen = pygame.display.set_mode((500, 600))
+screen = pygame.display.set_mode((500, 650))
 
 # Title and Icon
 pygame.display.set_caption("SUDOKU")
@@ -20,7 +17,8 @@ dif = 500 / 9
 val = 0
 # Default Sudoku Board.
 
-grid = sudoku()
+sdk = Sudoku()
+grid = sdk.sudoku()
 gr = [row[:] for row in grid] # initial grid
 
 # Load test fonts for future use
@@ -51,13 +49,13 @@ def draw():
 
 				# Fill grid with default numbers specified
 				text1 = font1.render(str(grid[i][j]), 1, (0, 0, 0))
-				screen.blit(text1, (i * dif + 15, j * dif + 15))
+				screen.blit(text1, (i * dif + 13, j * dif + 3))
 			elif gr[i][j] == 0 and grid[i][j] != 0:
 				pygame.draw.rect(screen, (255, 255, 255), (i * dif, j * dif, dif + 1, dif + 1))
 
 				# Fill grid with default numbers specified
 				text1 = font1.render(str(grid[i][j]), 1, (0, 0, 0))
-				screen.blit(text1, (i * dif + 15, j * dif + 15))
+				screen.blit(text1, (i * dif + 13, j * dif + 3))
 
 
                                 
@@ -92,6 +90,7 @@ def result():
 	text2 = font2.render("Press S for a new grid", 1, (0, 0, 0))
 	screen.blit(text1, (20, 570))
 	screen.blit(text2, (165, 575))
+
 
 run = True
 flag1 = 0
@@ -147,12 +146,12 @@ while run:
 			if event.key == pygame.K_q: #verify
 				flag2 = 1
 			if event.key == pygame.K_f: #solve
-				grid = solution(grid,dispo(grid))
+				grid = sdk.resolver(grid,sdk.n_missing(grid))
 			# If R pressed clear the sudoku board
 			if event.key == pygame.K_s:
 				rs = 0
 				flag2 = 0
-				grid = sudoku()
+				grid = sdk.sudoku()
 				gr = [row[:] for row in grid]          
 			# If D is pressed reset the board to default
 			if event.key == pygame.K_d:
@@ -160,7 +159,7 @@ while run:
 				flag2 = 0
 				grid =gr
 	if flag2 == 1:
-		if verif(gr,grid) == 1:
+		if sdk.verif(gr,grid) == 1:
 			rs = 1
 		flag2 = 0
 	if val != 0:		

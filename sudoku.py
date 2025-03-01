@@ -1,368 +1,370 @@
-# Bloc: groupe de 9 cases. Comptés de gauche à droite de haut en bas (de 0 à 8)
-
-# lrow : ensemble des valeurs utilisées sur une ligne
-# lcol : ensemble des valeurs utilisées dans une colonne
-# l_u : ensemble des valeurs utilisées au sein d'un bloc
-
-
-# _____fonction_____
-
-# div_euc(a,b) : renvoie le résultat de la division euclidienne de a par b sous la forme [q,mod]
-
-#affiche(tab) : affiche chaque ligne d'un tableau
-
-#bloc(num) : renvoie le numéro de chaque case d'un bloc
-
-# pos_bloc(x,y) : renvoie le numéro de position d'un bloc en fonction de sa position en x et y
-
-# val_poss_bloc(tab,num) : renvoie les valeurs possibles d'une case en fonction des valeurs de son bloc
-
-#val_poss_row(tab,x,y) : renvoie les valeurs possibles d'une case en fonction des valeurs de sa ligne
-
-#val_poss_col(tab,x,y) : renvoie les valeurs possibles d'une case en fonction des valeurs de sa ligne
-
-#valeurs_possible(tab,x,y) : renvoie les valeurs possibles d'une case en fonction des valeurs de sa ligne,colonne et bloc
-
-#fill() : génère une grille de sodoku remplie dans la variable global tab. renvoie 1 si grille généré 0 sinon
-
-#dispo(tab) : donne le nombre de cases à remplir au sein d'une grille (nombre de 0)
-
-#sol(tab,vide) : vérifie si une grille est résoluble. renvoie tab si la grille est résoluble 0 sinon
-
-#solution(tab,vide) : renvoie 0 si la grille n'est pas résoluble, la grille remplie sinon
-
-#position(x) : renvoie les coordonnées de la x-ieme case d'un tableau sous la forme [x,y]
-
-#cache(n) : retire n cases aléatoire d'un grille remplie en vérifiant que cette dernière reste résoluble après retrait de la valeur. renvoie la table caché avec un n(<57) valeurs retiré
-
-#sudoku(n): renvoie une grille à remplir possédant n (<57) cases libres
-
-# _________________________________________________________________________#
-
 import random
-import time
 
 
-tab = [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]] # grille sudoku complète
+def display(grid) -> None:
+    """
+    Print each grid's row
 
-tab2 = [list(range(1,10)),list(range(10,19)),list(range(19,28)),list(range(28,37)),list(range(37,46)),list(range(46,55)),list(range(55,64)),list(range(64,73)),list(range(73,82))] #matrice des positions
-
-tab3 = []
-
-tab4 = [[0,2,0,0,8,5,0,3,0],[7,0,0,4,9,0,0,0,0],[0,0,0,0,0,3,8,6,0],[5,0,3,0,0,0,0,0,1],[8,7,0,0,0,0,0,4,0],[0,4,0,0,0,0,3,0,0],[0,0,0,0,0,0,5,7,2],[0,0,0,0,0,8,0,1,3],[6,0,1,0,0,0,9,8,4]]
-
-nb = 0 # nombre de simulation afin d'obtenir une grille complète
-
-def div_euc(a,b):
-
-    q = a//b
-    modulo = a-q*b
-    list = [q,modulo]
-
-    return list
-
-
-def affiche(tab):
-
+    :param grid: grid to consider
+    :return:
+    """
     for i in range(9):
-        print(tab[i])
+        print(grid[i])
     print("\n")
 
 
-def bloc(num):
+class Sudoku:
 
-    global tab2
-    l = []
-    b = []
-    q = div_euc(num,3)[0]
-    mod = div_euc(num,3)[1]
-    a = tab2[q*3:q*3+3]
+    def __init__(self):
 
-    for i in range(3):
-        b.append(a[i][(mod)*3:(mod)*3+3])
+        self.base_grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-    for i in range(3):
-        for j in range(3):
-            l.append(b[i][j])
+        self.index_grid = [list(range(1, 10)), list(range(10, 19)), list(range(19, 28)), list(range(28, 37)),
+                           list(range(37, 46)),
+                           list(range(46, 55)), list(range(55, 64)), list(range(64, 73)),
+                           list(range(73, 82))]  # matrice des positions
 
-    return l
+        # number of tries before filling grid
+        self.tries = 0
 
+    def euclidian_division(self, numerator: int, denominator: int) -> list:
+        """
+        Result of the Euclidean division of a by b in the form [q, mod].
 
-def pos_bloc(x,y):
+        :param numerator: number to divide
+        :param denominator: divider used for the division
+        :return:
+        """
+        q = numerator // denominator
+        modulo = numerator - q * denominator
+        output = [q, modulo]
 
-    global tab2
-    a = tab2[x][y]
+        return output
 
-    for i in range(0,9):
-        if a in bloc(i):
-            return i
+    def value_in_bloc(self, bloc_number: int) -> list:
+        """
+        value of each cell whiting the ith bloc.
 
-    return 0
+        :param bloc_number: bloc index (between 1 and 9)
+        :return:
+        """
+        bloc = []
+        q, mod = self.euclidian_division(bloc_number, 3)
+        index_grid = self.index_grid[q * 3:q * 3 + 3]
+        for i in range(3):
+            bloc.append(index_grid[i][mod * 3:mod * 3 + 3])
 
-        
-def val_poss_bloc(tab,num):
-    
-    l_u = []
-    a = []
-    sol = div_euc(num,3)
-    q = sol[0]
-    mod = sol[1]
-    t = tab[q*3:q*3+3]
+        return [x for y in bloc for x in y]
 
-    for i in range(3):
-        a.append(t[i][mod*3:mod*3+3])
+    def bloc_index(self, row: int, column: int) -> int:
+        """
+        Bloc index based on cell row and col value.
 
-    for i in range(3):
-        for j in range(3):
-            if a[i][j] != 0:
-                l_u.append(a[i][j])
+        :param row: row index value
+        :param column: column index value
+        :return:
+        """
+        a = self.index_grid[row][column]
 
-    l_u = set(l_u)
-    l_u = list(l_u)
-    l = list(range(1,10))
+        for i in range(0, 9):
+            if a in self.value_in_bloc(i):
+                return i
+        # return 0
 
-    for i in range(len(l_u)):
-        b = l_u[i]
-        del l[l.index(b)]
-        
-    return l
+    def available_bloc_value(self, grid: list, bloc_index: int):
+        """
+        Available value for a given bloc.
 
+        :param grid: grid to consider
+        :param bloc_index: index of bloc
+        :return:
+        """
+        bloc = []
+        sol = self.euclidian_division(bloc_index, 3)
+        q = sol[0]
+        mod = sol[1]
+        t = grid[q * 3:q * 3 + 3]
 
-def val_poss_row(tab,x,y):
+        for i in range(3):
+            bloc.append(t[i][mod * 3:mod * 3 + 3])
 
-    lrow = []
+        val_in_bloc = set([x for y in bloc for x in y if x != 0])
+        val_in_bloc = list(val_in_bloc)
+        available_value = list(range(1, 10))
 
-    for i in range(9):
-        if tab[x][i] != 0:
-            lrow.append(tab[x][i])
+        for i in range(len(val_in_bloc)):
+            b = val_in_bloc[i]
+            del available_value[available_value.index(b)]
 
-    l = list(range(1,10))
+        return available_value
 
-    for i in range(len(lrow)):
-        a = lrow[i]
-        del l[l.index(a)]
-    
-    return l
+    def available_row_value(self, grid: list, row_index: int) -> list:
+        """
+        Available value for a cell based on a given row.
 
+        :param grid: game grid
+        :param row_index: row to consider
+        :return:
+        """
+        val_in_row = []
 
-def val_poss_col(tab,x,y):
+        for i in range(9):
+            if grid[row_index][i] != 0:
+                val_in_row.append(grid[row_index][i])
 
-    lcol = []
+        available_value = list(range(1, 10))
 
-    for i in range(9):
-        if tab[i][y] != 0:
-            lcol.append(tab[i][y])
-        
-    l = list(range(1,10))
+        for val in val_in_row:
+            del available_value[available_value.index(val)]
 
-    for i in range(len(lcol)):
-        a = lcol[i]
-        del l[l.index(a)]
-    
-    return l
+        return available_value
 
+    def available_col_value(self, grid: list, column_index: int) -> list:
+        """
+        Available value for a cell based on a given column.
 
-def valeurs_possible(tab,x,y):
+        :param grid: game grid
+        :param column_index: column to consider
+        :return:
+        """
+        val_in_col = []
 
-    num = pos_bloc(x,y)
-    l1 = set(val_poss_row(tab,x,y))
-    l2 = set(val_poss_col(tab,x,y))
-    l3 = set(val_poss_bloc(tab,num))
-    l = list(l1&l2&l3)
+        for i in range(9):
+            if grid[i][column_index] != 0:
+                val_in_col.append(grid[i][column_index])
 
-    return l
+        l = list(range(1, 10))
 
+        for val in val_in_col:
+            del l[l.index(val)]
 
-def fill():
+        return l
 
-    global tab
-    global nb
-    nb = nb+1
-    for i in range(9):
-        for j in range(9):
-            
-            if nb == 995: # empeche erreur exces de récursion
-                return 0
-            
-            elif len(valeurs_possible(tab,i,j)) == 0:
+    def available_value(self, grid, row_index, column_index):
+        """
+        Available value for a cell.
 
-                tab = [[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]]
-                return(fill())
+        :param grid: game grid
+        :param row_index: row to consider
+        :param column_index: col to consider
+        :return:
+        """
+        num = self.bloc_index(row_index, column_index)
+        l1 = set(self.available_row_value(grid, row_index))
+        l2 = set(self.available_col_value(grid, column_index))
+        l3 = set(self.available_bloc_value(grid, num))
+        l = list(l1 & l2 & l3)
 
-           
-            else:
-                a = random.choice(valeurs_possible(tab,i,j))
-                tab[i][j] = a
-                if (i==8 and j==8):
-                    return 1
-    return 0
-   
- 
-def dispo(tab):
+        return l
 
-    zero = 0
-    for i in range(9):
-        for j in range(9):
-            if tab[i][j] == 0:
-                zero = zero+1
-                
-    return zero
+    def fill(self) -> int:
+        """
+        Generate a sudoku grid.
 
+        :return: 1 if the grid is created else 0
+        """
 
-def sol(tab1,vide):    
-
-    global tab
-    acc = 0
-    tabl = [row[:] for row in tab1]
-    l = []
-    
-    for k in range(vide):
+        self.tries = self.tries + 1
         for i in range(9):
             for j in range(9):
-                if tabl[i][j] == 0:
-                    a = [i,j]
-                    l.append(a)
-                    
-                    val = valeurs_possible(tabl,i,j)
-                    
-                    if len(val) == 1:
-                        tabl[i][j] = val[0]
-                        acc = acc+1
-    if acc == vide:
-        for k in range(vide):
-            i = l[k][0]
-            j = l[k][1]
-            tabl[i][j] = 0
-        return tabl
-    
-    return 0
 
-def solution(tab1,vide):  
-
-    global tab
-    acc = 0
-    tabl =  [row[:] for row in tab1]
-    l = []
-    
-    for k in range(0,vide):
-        for i in range(9):
-            for j in range(9):
-                if tabl[i][j] == 0:
-                    a = [i,j]
-                    l.append(a)
-                    
-                    val = valeurs_possible(tabl,i,j)
-                    
-                    if len(val) == 1:
-                        tabl[i][j] = val[0]
-                        acc = acc+1
-                        if acc == vide:
-                            return tabl
-    
-    return 0
-
-
-
-def position(x):
-
-    global tab2
-
-    for i in range(9):
-        if x in tab2[i]:
-
-            b = i
-            for j in range(9):
-                if x == tab2[b][j]:
-                    c = j
-                    l = [i,j]
-
-                    return l
-
-    return 0
-
-
-def verif(grille,tab1):
-
-    tabl = [row[:] for row in grille]
-    
-    for i in range(9):
-        for j in range(9):
-            if grille[i][j] == 0:
-                if tab1[i][j] in valeurs_possible(tabl,i,j):
-                    tabl[i][j] = tab1[i][j]
-                else:
+                # avoid max recursion error
+                if self.tries == 995:
                     return 0
-    return 1
+
+                elif len(self.available_value(self.base_grid, i, j)) == 0:
+
+                    self.base_grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                      [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                      [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                      [0, 0, 0, 0, 0, 0, 0, 0, 0]]
+                    return self.fill()
 
 
-def cache(n): 
-   
-    global tab
-    grille = [row[:]for row in tab]
-    hide = 0
-    pos = list(range(1,82))
-    
-    while hide !=n:
-        
-        numpos = random.choice(pos)
-        i = position(numpos)[0]
-        j = position(numpos)[1]
-        grille[i][j] = 0
-        if (sol(grille,hide+1) != 0):
-            hide +=1
+                else:
+                    # randomly fill the grid
+                    rdm = random.choice(self.available_value(self.base_grid, i, j))
+                    self.base_grid[i][j] = rdm
+                    if (i == 8) and (j == 8):
+                        return 1
+        return 0
+
+    def n_missing(self, grid: list):
+        """
+        Number of cell to fill.
+
+        :param grid: game grid
+        :return:
+        """
+        zero = 0
+        for i in range(9):
+            for j in range(9):
+                if grid[i][j] == 0:
+                    zero = zero + 1
+
+        return zero
+
+    def is_solvable(self, grid: list, n_empty: int) -> list | int:
+        """
+        Try to solve grid to check if it is solvable.
+
+        :param grid:
+        :param n_empty:
+        :return: grid if is solvable else 0
+        """
+        acc = 0
+        grid_copy = [row[:] for row in grid]
+        empty_coordinates = []
+
+        for k in range(n_empty):
+            for i in range(9):
+                for j in range(9):
+                    if grid_copy[i][j] == 0:
+                        empty_coordinates.append([i, j])
+
+                        value = self.available_value(grid_copy, i, j)
+
+                        if len(value) == 1:
+                            grid_copy[i][j] = value[0]
+                            acc = acc + 1
+        # if solvable empty filled cells
+        if acc == n_empty:
+            for k in range(n_empty):
+                i = empty_coordinates[k][0]
+                j = empty_coordinates[k][1]
+                grid_copy[i][j] = 0
+            return grid_copy
+
+        return 0
+
+    def resolver(self, grid: list, n_empty: int) -> list | int:
+        """
+        renvoie 0 si la grille n'est pas résoluble, la grille remplie sinon
+
+        :param grid: grid to consider
+        :param n_empty: number of cell to fill
+        :return:
+        """
+        acc = 0
+        grid_copy = [row[:] for row in grid]
+        empty_coordinates = []
+
+        for k in range(n_empty):
+            for i in range(9):
+                for j in range(9):
+                    if grid_copy[i][j] == 0:
+                        empty_coordinates.append([i, j])
+
+                        value = self.available_value(grid_copy, i, j)
+
+                        if len(value) == 1:
+                            grid_copy[i][j] = value[0]
+                            acc = acc + 1
+                            if acc == n_empty:
+                                return grid_copy
+
+        return 0
+
+    def xy_position(self, x: int):
+        """
+        Return x,y coordinates of Xth element of a flatten list[list].
+
+        :param x: index to consider
+        :return:
+        """
+
+        for i in range(9):
+            if x in self.index_grid[i]:
+
+                b = i
+                for j in range(9):
+                    if x == self.index_grid[b][j]:
+                        l = [i, j]
+
+                        return l
+
+        return 0
+
+    def verif(self, grid: list, solution: list):
+        """
+        Check if user solution is correct
+
+        :param grid: user proposition
+        :param solution: solution
+        :return:
+        """
+        grid_copy = [row[:] for row in grid]
+
+        for i in range(9):
+            for j in range(9):
+                if grid[i][j] == 0:
+                    if solution[i][j] in self.available_value(grid_copy, i, j):
+                        grid_copy[i][j] = solution[i][j]
+                    else:
+                        return 0
+        return 1
+
+    def hide_cells(self, n: int):
+        """
+        Remove randomly n(<57)  cells while keeping the grid solvable.
+
+        :param n: number of cells to hide
+        :return: grid with removed value
+        """
+        # copy grid
+        grille = [row[:] for row in self.base_grid]
+        hide = 0
+        pos = list(range(1, 82))
+
+        while hide != n:
+
+            index_pos = random.choice(pos)
+            i, j = self.xy_position(index_pos)
+            grille[i][j] = 0
+            if self.is_solvable(grille, hide + 1) != 0:
+                hide += 1
+            else:
+                grille[i][j] = self.base_grid[i][j]
+            del pos[pos.index(index_pos)]
+            if len(pos) == 0:
+                hide = n
+
+        return grille
+
+    def sudoku(self) -> list:
+        """
+        Create a sudoku grid.
+
+        :return: sudoku grid
+        """
+
+        x = input('Choose difficulty 1,2,3,4 ou 5\n')
+        if x == '1':
+            n = random.choice([44, 45, 46])
+        elif x == '2':
+            n = random.choice([46, 47, 48])
+        elif x == '3':
+            n = random.choice([48, 49, 50])
+        elif x == '4':
+            n = random.choice([50, 51, 52, 53, 54])
         else:
-            grille[i][j] = tab[i][j]
-        del pos[pos.index(numpos)]
-        if len(pos) == 0:
-            hide = n      
-        
-    return grille
+            n = random.choice([54, 55, 56])
+
+        while self.fill() != 1:
+            self.fill()
+        grille = self.hide_cells(n)
+
+        while self.n_missing(grille) != n:
+            grille = self.hide_cells(n)
+
+        return grille
 
 
-def sudoku():
-
-    #start = time.time()
-    nb = 0
-    
-    print('choisissez la difficulté 1,2,3,4 ou 5\n')
-    x = input()
-    if x == '1':
-        n = random.choice([44,45,46])
-    elif x == '2':
-        n = random.choice([46,47,48])
-    elif x == '3':
-        n = random.choice([48,49,50])
-    elif x == '4':
-        n = random.choice([50,51,52,53,54])
-    else:
-        n = random.choice([54,55,56])
-
-    while (fill() != 1):
-        fill()
-    grille = cache(n)
-    
-    while (dispo(grille) != n):
-        grille = cache(n)
-
-    #end = time.time()
-    #print(end-start)
-    return grille
-
-
-# test__________________________
-
-#a = sudoku()
-#print(dispo(a))
-#affiche(a)
-
-
-tab8  =[[7, 6, 0, 0, 0, 9, 0, 1, 0],
-        [8, 0, 0, 0, 0, 0, 7, 2, 4],
-	[0, 0, 0, 7, 1, 4, 0, 0, 9],
-	[4, 0, 6, 0, 0, 0, 3, 0, 2],
-	[0, 7, 0, 4, 5, 6, 0, 0, 0],
-	[0, 5, 1, 0, 0, 0, 0, 7, 6],
-	[1, 0, 0, 2, 9, 0, 0, 4, 0],
-	[2, 0, 7, 6, 3, 0, 1, 0, 0],
-	[0, 9, 8, 0, 0, 5, 2, 0, 7]]
-
+if __name__ == "__main__":
+    sdk = Sudoku()
+    sdk_grid = sdk.sudoku()
+    display(sdk_grid)
